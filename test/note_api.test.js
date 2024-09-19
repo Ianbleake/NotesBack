@@ -13,23 +13,40 @@ const User = require('../models/user');
 let testUserId;
 
 describe('when there is initially some notes saved', () => {
+  let testUserId;
+  let token;
+  
   beforeEach(async () => {
     await Note.deleteMany({});
     await User.deleteMany({});
-
-    const testUser = new User({
+  
+    const testUser = {
       username: 'UserForTesting',
       name: 'TesterUser',
-      passwordHash: 'Hashedpassword.123'
-    });
+      password: 'Hashedpassword.123'
+    };
+  
+    const savedUserResponse = await api
+      .post('/api/users')
+      .send(testUser)
+      .expect(201)
+      .expect('Content-Type', /application\/json/);
+  
+    testUserId = savedUserResponse.body.id;
+  
+    const loginResponse = await api
+      .post('/api/login')
+      .send({ username: testUser.username, password: testUser.password })
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+  
 
-    const savedUser = await testUser.save();
-    testUserId = savedUser._id; 
-
-    const initialNotes = helper.createInitialNotes(testUserId); 
-    await Note.insertMany(initialNotes); 
+    token = loginResponse.body.token;
+  
+    const initialNotes = helper.createInitialNotes(testUserId);
+    await Note.insertMany(initialNotes);
   });
-
+  
   test('notes are returned as json', async () => {
     await api
       .get('/api/notes')
@@ -51,6 +68,7 @@ describe('when there is initially some notes saved', () => {
   });
 
   describe('viewing a specific note', () => {
+
     test('succeeds with a valid id', async () => {
       const notesAtStart = await helper.notesInDb();
 
@@ -89,25 +107,28 @@ describe('when there is initially some notes saved', () => {
   });
 
   describe('addition of a new note', () => {
+
     test('succeeds with valid data', async () => {
+    
       const newNote = {
         content: 'async/await simplifies making async calls',
         important: true,
-        userId: testUserId 
+        userId: testUserId
       };
-
+    
       await api
         .post('/api/notes')
+        .set('Authorization', `Bearer ${token}`)
         .send(newNote)
         .expect(201)
         .expect('Content-Type', /application\/json/);
-
+    
       const notesAtEnd = await helper.notesInDb();
       assert.strictEqual(notesAtEnd.length, 3);
-
+    
       const contents = notesAtEnd.map(n => n.content);
       assert(contents.includes('async/await simplifies making async calls'));
-    });
+    });    
 
     test('fails with status code 400 if data invalid', async () => {
       const newNote = {
