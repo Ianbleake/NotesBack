@@ -7,3 +7,14 @@ Content-Type: application/json
       "password": "Arviluki.123"
 }
 
+### Create front user 
+
+POST  http://localhost:3001/api/users
+Content-Type: application/json
+
+{
+      "username": "FrontUserAdmin",
+      "name": "IanBleake",
+      "password": "Admin.123"
+}
+
