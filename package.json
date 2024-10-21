@@ -8,7 +8,8 @@
     "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test node --test",
     "build:ui": "rm -rf dist && cd ../NotesFront && npm run build && cp -r dist ../NotesBack",
-    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push",
+    "start:test": "NODE_ENV=test node index.js"
   },
   "author": "Ian Bleake",
   "license": "MIT",
